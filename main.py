@@ -1,39 +1,82 @@
 import os
 import argparse
+import gradio as gr
+from datetime import datetime
+
+# Import our modules
 from src.transcription.whisper_transcriber import WhisperTranscriber
 from src.summarization.llm_summarizer import MeetingSummarizer
 from src.ui.gradio_interface import create_interface
 
+# Import configuration
+from config import TOGETHER_API_KEY, DEFAULT_MODEL_SIZE, DEFAULT_SAVE_DIR
+
 def parse_args():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(description='Meeting Recorder and Summarizer')
-    parser.add_argument('--model_size', default='base', choices=['tiny', 'base', 'small', 'medium', 'large'],
+    parser.add_argument('--model_size', default=DEFAULT_MODEL_SIZE, 
+                        choices=['tiny', 'base', 'small', 'medium', 'large'],
                         help='Whisper model size to use for transcription')
-    parser.add_argument('--save_dir', default='./data/saved_meetings',
+    parser.add_argument('--save_dir', default=DEFAULT_SAVE_DIR,
                         help='Directory to save meeting recordings and summaries')
+    parser.add_argument('--port', type=int, default=7860,
+                        help='Port for the Gradio web interface')
+    parser.add_argument('--debug', action='store_true',
+                        help='Enable debug mode')
     return parser.parse_args()
 
-def main():
-    args = parse_args()
-    
-    # 确保存储目录存在
+def setup_environment(args):
+    """Set up the environment for the application."""
+    # Create directories if they don't exist
     os.makedirs(args.save_dir, exist_ok=True)
     
-    # 初始化转录器
+    # Set up logging
+    if args.debug:
+        import logging
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+
+def main():
+    """Main entry point for the application."""
+    # Parse command line arguments
+    args = parse_args()
+    
+    # Set up environment
+    setup_environment(args)
+    
+    print(f"Starting Meeting Recorder with Whisper model: {args.model_size}")
+    
+    # Initialize the transcriber
     transcriber = WhisperTranscriber(model_size=args.model_size)
     
-    # 初始化摘要生成器
-    # 当你的队友实现了Together API部分，可以解除下面代码的注释
-    # from config import TOGETHER_API_KEY
-    # from together import Together
-    # client = Together(api_key=TOGETHER_API_KEY)
-    # summarizer = MeetingSummarizer(client)
+    # Initialize the summarizer
+    # If API key is available, use the LLM for summarization
+    if TOGETHER_API_KEY:
+        from together import Together
+        client = Together(api_key=TOGETHER_API_KEY)
+        summarizer = MeetingSummarizer(client)
+        print("Using Together AI for meeting summarization")
+    else:
+        # Use a placeholder summarizer that doesn't require API access
+        summarizer = MeetingSummarizer(None)
+        print("WARNING: No API key found. Using placeholder summarization.")
+        print("For full functionality, set TOGETHER_API_KEY in .env file")
     
-    # 使用占位符摘要生成器进行测试
-    summarizer = MeetingSummarizer(None)  # 传入None表示使用占位符实现
+    # Create and launch the interface
+    interface = create_interface(
+        transcriber=transcriber,
+        summarizer=summarizer,
+        save_dir=args.save_dir
+    )
     
-    # 创建并启动界面
-    interface = create_interface(transcriber, summarizer, save_dir=args.save_dir)
-    interface.launch()
+    print(f"Launching web interface on port {args.port}")
+    interface.launch(
+        server_name="0.0.0.0",  # Make available on local network
+        server_port=args.port,
+        share=True              # Create a public link
+    )
 
 if __name__ == "__main__":
     main()

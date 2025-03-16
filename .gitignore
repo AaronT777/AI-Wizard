@@ -1,4 +1,4 @@
-# 环境变量
+# Environment variables
 .env
 
 # Python
@@ -23,19 +23,35 @@ wheels/
 .installed.cfg
 *.egg
 
-# 虚拟环境
+# Virtual environments
 venv/
 env/
 ENV/
 
-# 保存的会议
+# Saved meetings and data
 data/saved_meetings/
+*.wav
+*.mp3
+*.ogg
 
-# 模型文件
+# Model files
 *.pt
 *.pth
+*.bin
 
-# IDE文件
+# IDE files
 .idea/
 .vscode/
 *.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Logs
+*.log
+logs/

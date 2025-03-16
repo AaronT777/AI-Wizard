@@ -2,6 +2,43 @@ import os
 import argparse
 import gradio as gr
 from datetime import datetime
+import sys
+import subprocess
+
+# 尝试安装ffmpeg
+def ensure_ffmpeg():
+    """确保ffmpeg可用"""
+    try:
+        # 尝试运行ffmpeg命令
+        subprocess.run(["ffmpeg", "-version"], check=True, capture_output=True)
+        print("System ffmpeg is available")
+        return True
+    except:
+        print("System ffmpeg not found, trying to install via pip...")
+        try:
+            # 安装imageio-ffmpeg
+            subprocess.run([sys.executable, "-m", "pip", "install", "imageio-ffmpeg"], check=True)
+            
+            # 设置环境变量
+            import imageio_ffmpeg
+            ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+            os.environ["PATH"] = os.environ["PATH"] + os.pathsep + os.path.dirname(ffmpeg_path)
+            print(f"Added ffmpeg to PATH: {ffmpeg_path}")
+            
+            # 验证安装
+            try:
+                subprocess.run([ffmpeg_path, "-version"], check=True, capture_output=True)
+                print("ffmpeg from imageio_ffmpeg is working")
+                return True
+            except:
+                print(f"Failed to run {ffmpeg_path}")
+                return False
+        except Exception as e:
+            print(f"Failed to install ffmpeg: {str(e)}")
+            return False
+
+# 确保ffmpeg可用
+ensure_ffmpeg()
 
 # Import our modules
 from src.transcription.whisper_transcriber import WhisperTranscriber

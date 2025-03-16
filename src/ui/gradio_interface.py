@@ -6,12 +6,12 @@ from config import APP_TITLE, APP_DESCRIPTION
 
 def create_interface(transcriber, summarizer, save_dir="./data/saved_meetings"):
     """
-    Create the Gradio interface for the Meeting Recorder app.
+    Create the Gradio interface for the Meeting Transcription app.
     
     Args:
         transcriber: The WhisperTranscriber instance
         summarizer: The MeetingSummarizer instance
-        save_dir: Directory to save meeting recordings and summaries
+        save_dir: Directory to save meeting transcriptions and summaries
         
     Returns:
         gr.Blocks: Gradio interface
@@ -24,7 +24,6 @@ def create_interface(transcriber, summarizer, save_dir="./data/saved_meetings"):
         "audio_path": None,
         "transcript": None,
         "summary": None,
-        "start_time": None,
         "session_id": None
     }
     
@@ -39,16 +38,19 @@ def create_interface(transcriber, summarizer, save_dir="./data/saved_meetings"):
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         return f"meeting-{timestamp}"
     
-    def record_started():
-        """Called when recording starts."""
-        state["start_time"] = datetime.now()
+    def file_uploaded(audio_path):
+        """Called when an audio file is uploaded."""
+        if audio_path is None:
+            return update_status("No file uploaded", True)
+        
+        state["audio_path"] = audio_path
         state["session_id"] = generate_session_id()
-        return update_status("Recording in progress... 🔴")
+        return update_status(f"Audio file uploaded successfully: {os.path.basename(audio_path)}")
     
     def transcribe_audio(audio_path):
-        """Transcribe the recorded audio."""
+        """Transcribe the uploaded audio."""
         if not audio_path:
-            return update_status("No audio recorded. Please record audio first.", True), None
+            return update_status("No audio file uploaded. Please upload an audio file first.", True), None
         
         try:
             state["audio_path"] = audio_path
@@ -117,9 +119,8 @@ def create_interface(transcriber, summarizer, save_dir="./data/saved_meetings"):
         state["audio_path"] = None
         state["transcript"] = None
         state["summary"] = None
-        state["start_time"] = None
         return (
-            update_status("All data cleared. Ready to record new meeting."),
+            update_status("All data cleared. Ready to upload a new audio file."),
             None,  # Clear audio
             "",    # Clear transcript
             "",    # Clear summary
@@ -135,22 +136,16 @@ def create_interface(transcriber, summarizer, save_dir="./data/saved_meetings"):
         gr.Markdown(f"### {APP_DESCRIPTION}")
         
         # Status indicator
-        status_indicator = gr.Markdown("### Status: Ready to record")
+        status_indicator = gr.Markdown("### Status: Ready to upload audio file")
         
-        # Audio recording component
+        # Audio upload component
         with gr.Row():
             with gr.Column(scale=3):
                 audio_input = gr.Audio(
-                    sources=["microphone"],
+                    sources=["upload"],
                     type="filepath",
-                    label="Meeting Recording",
-                    elem_id="audio_recorder"
-                )
-            
-            with gr.Column(scale=1):
-                model_info = gr.Markdown(
-                    f"**Model:** Whisper {transcriber.model_size}\n"
-                    f"**Device:** {transcriber.device}"
+                    label="Upload Audio File",
+                    elem_id="audio_uploader"
                 )
         
         # Transcription section
@@ -160,7 +155,7 @@ def create_interface(transcriber, summarizer, save_dir="./data/saved_meetings"):
         transcript_output = gr.Textbox(
             label="📄 Meeting Transcript",
             lines=10,
-            placeholder="Record your meeting and click 'Transcribe Audio' button. The transcript will appear here...",
+            placeholder="Upload an audio file and click 'Transcribe Audio' button. The transcript will appear here...",
             elem_id="transcript_box"
         )
         
@@ -183,9 +178,10 @@ def create_interface(transcriber, summarizer, save_dir="./data/saved_meetings"):
         
         save_status = gr.Markdown("")
         
-        # Audio recording event
-        audio_input.start_recording(
-            fn=record_started,
+        # Audio upload event
+        audio_input.change(
+            fn=file_uploaded,
+            inputs=[audio_input],
             outputs=[status_indicator]
         )
         
@@ -222,8 +218,8 @@ def create_interface(transcriber, summarizer, save_dir="./data/saved_meetings"):
         # Footer information
         gr.Markdown("""
         ---
-        **Tips:** This tool is suitable for various meeting records, such as team meetings, client communications, project discussions, etc.
-        Before recording, please ensure all participants are aware that the meeting will be recorded.
+        **Tips:** This tool is suitable for transcribing various audio files, such as meeting recordings, interviews, lectures, etc.
+        Supported audio formats include MP3, WAV, M4A, and other common formats.
         """)
     
     return interface

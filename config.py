@@ -18,8 +18,8 @@ DEFAULT_SAVE_DIR = os.getenv("DEFAULT_SAVE_DIR", str(DATA_DIR / "saved_meetings"
 DEFAULT_LLM_MODEL = os.getenv("DEFAULT_LLM_MODEL", "meta-llama/Meta-Llama-3-8B-Instruct-Lite")
 
 # User Interface
-APP_TITLE = os.getenv("APP_TITLE", "AI-Wizard: Meeting Recorder and Summarizer")
-APP_DESCRIPTION = os.getenv("APP_DESCRIPTION", "Record, transcribe, and summarize meetings with AI")
+APP_TITLE = os.getenv("APP_TITLE", "AI-Wizard: Audio Transcription and Summarizer")
+APP_DESCRIPTION = os.getenv("APP_DESCRIPTION", "Upload, transcribe, and summarize audio files with AI")
 
 # Warn if no API key is found
 if not TOGETHER_API_KEY:

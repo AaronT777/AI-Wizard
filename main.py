@@ -50,12 +50,12 @@ from config import TOGETHER_API_KEY, DEFAULT_MODEL_SIZE, DEFAULT_SAVE_DIR
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description='Meeting Recorder and Summarizer')
+    parser = argparse.ArgumentParser(description='Audio Transcription and Summarizer')
     parser.add_argument('--model_size', default=DEFAULT_MODEL_SIZE, 
                         choices=['tiny', 'base', 'small', 'medium', 'large'],
                         help='Whisper model size to use for transcription')
     parser.add_argument('--save_dir', default=DEFAULT_SAVE_DIR,
-                        help='Directory to save meeting recordings and summaries')
+                        help='Directory to save transcriptions and summaries')
     parser.add_argument('--port', type=int, default=7860,
                         help='Port for the Gradio web interface')
     parser.add_argument('--debug', action='store_true',
@@ -83,7 +83,7 @@ def main():
     # Set up environment
     setup_environment(args)
     
-    print(f"Starting Meeting Recorder with Whisper model: {args.model_size}")
+    print(f"Starting Audio Transcription with Whisper model: {args.model_size}")
     
     # Initialize the transcriber
     transcriber = WhisperTranscriber(model_size=args.model_size)
@@ -94,7 +94,7 @@ def main():
         from together import Together
         client = Together(api_key=TOGETHER_API_KEY)
         summarizer = MeetingSummarizer(client)
-        print("Using Together AI for meeting summarization")
+        print("Using Together AI for content summarization")
     else:
         # Use a placeholder summarizer that doesn't require API access
         summarizer = MeetingSummarizer(None)

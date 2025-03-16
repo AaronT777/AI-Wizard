@@ -4,12 +4,12 @@ from config import DEFAULT_LLM_MODEL
 
 class MeetingSummarizer:
     """
-    A class to generate summaries of meeting transcripts using LLMs.
+    A class to generate summaries of audio transcripts using LLMs.
     """
     
     def __init__(self, client=None):
         """
-        Initialize the Meeting Summarizer.
+        Initialize the Content Summarizer.
         
         Args:
             client: The Together API client instance. If None, use placeholder summarization.
@@ -17,38 +17,38 @@ class MeetingSummarizer:
         self.client = client
         self.model = DEFAULT_LLM_MODEL
         
-        # Prompt template for meeting summarization
+        # Prompt template for content summarization
         self.prompt_template = """
-        SYSTEM: You are a professional meeting assistant specialized in summarizing meeting content.
+        SYSTEM: You are a professional assistant specialized in summarizing audio content.
         
         INSTRUCTIONS:
-        • Identify the main discussion topics of the meeting
-        • Extract key decisions and action items
-        • Note responsible persons and deadlines (if mentioned)
+        • Identify the main topics of the audio content
+        • Extract key points and important information
+        • Note any specific details, names, or dates (if mentioned)
         • Organize information into concise bullet points
         • Order content by importance
         • Maintain an objective and neutral tone
         • Ensure the summary comprehensively covers all important points
         
-        Meeting transcript: {content}
+        Audio transcript: {content}
         
-        Please provide a structured meeting summary including:
-        1. Meeting topic
-        2. Key discussion points
-        3. Decisions made
-        4. Action items (with responsible persons and deadlines, if any)
-        5. Next steps
+        Please provide a structured summary including:
+        1. Main topic/subject
+        2. Key points
+        3. Important details
+        4. Conclusions or outcomes (if any)
+        5. Next steps (if mentioned)
         """
     
     def generate_summary(self, transcript):
         """
-        Generate a meeting summary from the transcript.
+        Generate a summary from the audio transcript.
         
         Args:
-            transcript (str): Meeting transcript text
+            transcript (str): Audio transcript text
             
         Returns:
-            str: Generated meeting summary
+            str: Generated summary
         """
         if not transcript or transcript.strip() == "":
             return "Error: Transcript is empty. Please record and transcribe a meeting first."

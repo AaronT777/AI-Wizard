@@ -4,3 +4,4 @@ together>=0.2.0
 torch>=2.0.0
 numpy>=1.22.0
 python-dotenv>=1.0.0
+sentence-transformers>=2.2.2
